@@ -1,12 +1,22 @@
 # TCPClientPlugin
+TCPClient make easy to connect and comunicate with your server via TCP Socket.<br>
+You can easily implement all the functions by learning how to use 4 blueprints.<br>
+Because of It is only maden by C++17 and unreal libray, any device that supports multi-threading can be used.<br>
 
+### features
+- All features can be created using blueprints.
+- All features can be created using C++ only too.
+- Connect to the server via TCP Socket
+- Supports multiple connections with various servers
+- Support type : bool, int8, int16, int32, int64, float, (double), String(utf-8) and bytes array
+- Each packet is managed with a Blueprint or C++ Class
 
 # 1. 4 Basic Classes
 ![image](https://user-images.githubusercontent.com/108503849/200352327-aadb6ed7-bc99-48d6-9f6d-32f7caf0b46d.png)<br>
-**TCPClientSubsystem** : Subsystem is responsible for creating and destroying sessions. You can get the sessions that you created through this.<br>
-**TCPClientSessionBase** : Session sends and receives packets while maintaining connectivity with the server.<br>
-**TCPRecvPacketBase** : Use this to define the packets that you want to receive from the server.<br>
-**TCPSendPacketBase** : Use this to define the packets to be sent to the server.<br>
+- **TCPClientSubsystem** : Subsystem is responsible for creating and destroying sessions. You can get the sessions that you created through this.<br>
+- **TCPClientSessionBase** : Session sends and receives packets while maintaining connectivity with the server.<br>
+- **TCPRecvPacketBase** : Use this to define the packets that you want to receive from the server.<br>
+- **TCPSendPacketBase** : Use this to define the packets to be sent to the server.<br>
 
 # 2. Policy
 ## Packet Policy
