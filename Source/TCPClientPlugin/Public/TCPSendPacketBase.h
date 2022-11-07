@@ -4,31 +4,63 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "TCPBufferWriter.h"
+
 #include "TCPSendPacketBase.generated.h"
 
 
 class ITCPSendPacket
 {
 public:
-	virtual int16 GetId() const = 0;
-	virtual void Serialize(class TCPBufferWriter& writer) = 0;
+	
+	virtual int32 GetPacketId() const = 0;
+	virtual void Serialize(TCPBufferWriter& writer) = 0;
 };
 /**
  * 
  */
-UCLASS(Abstract, BlueprintType)
+UCLASS(Blueprintable, BlueprintType, notplaceable)
 class TCPCLIENTPLUGIN_API UTCPSendPacketBase : public UObject, public ITCPSendPacket
 {
 	GENERATED_BODY()
 public:
-	virtual int16 GetId() const override
+	UFUNCTION(BlueprintPure, Category = "TCPSendPacket")
+	virtual int32 GetPacketId() const override
 	{
-		checkf(false, TEXT("You must implement GetId method in child of TCPSendPacket"));
-		return 0;
+		return PacketId;
 	};
 
-	virtual void Serialize(class TCPBufferWriter& writer) override
+	virtual void Serialize(TCPBufferWriter& writer) override
 	{
-		checkf(false, TEXT("You must implement ToByteArray method in child of TCPSendPacket"));
+		BufferWriter = &writer;
+		SerializeBP();
 	}
+
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket", meta = (DisplayName = "CreateSendPacket"))
+	static UTCPSendPacketBase* CreateSendPacketBP(TSubclassOf<UTCPSendPacketBase> packet);
+
+protected:
+	UFUNCTION(BlueprintImplementableEvent, Category = "TCPSendPacket", meta = (DisplayName = "Serialize"))
+	void SerializeBP();
+
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteBoolean(bool value) { BufferWriter->WriteBoolean(value); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WiretInt8(int32 value) { BufferWriter->WriteInt8((int8)value); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteInt16(int32 value) { BufferWriter->WriteInt16((int16)value); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteInt32(int32 value) { BufferWriter->WriteInt32(value); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteInt64(int64 value) { BufferWriter->WriteInt64(value); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteFloat(float value) { BufferWriter->WriteSingle(value); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteStringUTF8(const FString& message) { BufferWriter->WriteStringUTF8(message); }
+	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
+	void WriteByteArray(UPARAM(ref) TArray<uint8>& byteArray) { BufferWriter->WriteByteArray(byteArray); }
+protected:
+	UPROPERTY(EditDefaultsOnly, Category = "TCPSendPacket")
+	int32 PacketId { -1 };
+	TCPBufferWriter* BufferWriter;
 };

@@ -17,23 +17,17 @@ void UTCPClientSubsystem::Deinitialize()
         DisconnectSessionByName(kvp.Key);
     }
 }
-UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase> session, const FConnectedSessionDelegate& connectDelegate, const FDisconnectedSessionDelegate& disconnectDelegate)
+
+UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase> session)
 {
     if (session == nullptr)
     {
         UE_LOG(LogTemp, Warning, TEXT("TCPClientSubSystem[StartSession Fail] : Input session is null.."));
     }
+
     UTCPSessionBase* newSession = NewObject<UTCPSessionBase>(this, session, TEXT("TCPSession"));
     DisconnectSessionByName(newSession->GetName());
 
-    if (connectDelegate.IsBound())
-    {
-        OnConnected.Add(connectDelegate);
-    }
-    if (disconnectDelegate.IsBound())
-    {
-        OnDisconnected.Add(disconnectDelegate);
-    }
     newSession->OnStart();
     newSession->OnConnected.BindUFunction(this, FName("ConnectedCallback"));
     newSession->OnDisconnected.BindUFunction(this, FName("DisConnectedCallback"));
@@ -48,11 +42,31 @@ UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase
     return newSession;
 }
 
+UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase> session, const FConnectedSessionDelegate& connectDelegate, const FDisconnectedSessionDelegate& disconnectDelegate)
+{
+    if (session == nullptr)
+    {
+        UE_LOG(LogTemp, Warning, TEXT("TCPClientSubSystem[StartSession Fail] : Input session is null.."));
+    }
+
+    const FString& sessionName = session.GetDefaultObject()->GetName();
+    if (connectDelegate.IsBound())
+    {
+        OnConnected.Add(connectDelegate);
+    }
+    if (disconnectDelegate.IsBound())
+    {
+        OnDisconnected.Add(disconnectDelegate);
+    }
+
+    return ConnectSession(session);
+}
+
 void UTCPClientSubsystem::DisconnectSession(UTCPSessionBase* session)
 {
     if (session != nullptr)
     {
-        FString& sessionName = session->GetName();
+        const FString& sessionName = session->GetName();
         DisconnectSessionByName(sessionName);
     }
 }
@@ -61,9 +75,15 @@ void UTCPClientSubsystem::DisconnectSessionByName(const FString& sessionName)
 {
     if (Sessions.Contains(sessionName))
     {
+        
         UTCPSessionBase* Session = Sessions[sessionName];
         TCPClientController* controller = Session->GetController();
-
+        
+        if (Session->IsConnected())
+        {
+            controller->Disconnect(FString("Shutdown Manually"), true);
+        }
+        
         Sessions.Remove(sessionName);
         DeleteController(controller);
         Session->OnConnected.Unbind();

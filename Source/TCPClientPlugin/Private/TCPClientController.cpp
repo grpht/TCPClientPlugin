@@ -8,6 +8,8 @@
 #include "PacketQueue.h"
 #include "RecvBuffer.h"
 #include "TCPSessionBase.h"
+#include "TCPClientError.h"
+
 #define NEW_AYNC_CALLBACK(FuncName) [this](FAsyncResultRef res){ if(this != nullptr) FuncName(res);}
 
 TCPClientController::TCPClientController()
@@ -37,14 +39,8 @@ TCPClientController::~TCPClientController()
 
 void TCPClientController::StartConnect(const FString& ip, int32 port)
 {
-	try
-	{
-		client.BeginConnect(ip, port, NEW_AYNC_CALLBACK(ConnectCallback), NEW_AYNC_CALLBACK(DisconnectCallback), nullptr);
-	}
-	catch (std::exception& e)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("error : %s"), e.what());
-	}
+	int error = client.BeginConnect(ip, port, NEW_AYNC_CALLBACK(ConnectCallback), NEW_AYNC_CALLBACK(DisconnectCallback), nullptr);
+	PrintErrorMessage(error);
 }
 
 int32 TCPClientController::SetReceiveBufferSize(int32 size)
@@ -77,27 +73,15 @@ void TCPClientController::CheckMessage()
 
 void TCPClientController::StartSend(FByteArrayRef& Message)
 {
-	try
-	{
-		client.BeginSend(Message, NEW_AYNC_CALLBACK(SendCallback), Message);
-	}
-	catch (std::exception& e)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("error : %s"), e.what());
-	}
+	int error = client.BeginSend(Message, NEW_AYNC_CALLBACK(SendCallback), Message);
+	PrintErrorMessage(error);
 }
 
 void TCPClientController::StartRecv()
 {
 	RecvBuff->Clean();
-	try
-	{
-		client.BeginRecv(RecvBuff->WritePos(), RecvBuff->FreeSize(), NEW_AYNC_CALLBACK(RecvCallback), nullptr);
-	}
-	catch (std::exception& e)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("error : %s"), e.what());
-	}
+	int error = client.BeginRecv(RecvBuff->WritePos(), RecvBuff->FreeSize(), NEW_AYNC_CALLBACK(RecvCallback), nullptr);
+	PrintErrorMessage(error);
 }
 
 void TCPClientController::Disconnect(const FString& cause, bool shutdownNoramlly)
@@ -174,12 +158,12 @@ void TCPClientController::RecvCallback(FAsyncResultRef result)
 
 bool TCPClientController::IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfMessage)
 {
-	if (dataSize < sizeof(PacketHeader))
+	if (dataSize < sizeof(TCPPacketHeader))
 	{
 		return false;
 	}
 
-	PacketHeader header = *(reinterpret_cast<PacketHeader*>(buffer));
+	TCPPacketHeader header = *(reinterpret_cast<TCPPacketHeader*>(buffer));
 	sizeOfMessage = header.Size;
 	if (dataSize < header.Size)
 	{
@@ -190,7 +174,7 @@ bool TCPClientController::IsOneMessage(uint8* buffer, int32 dataSize, OUT int32&
 
 void TCPClientController::PutMessage(uint8* buffer, int32 sizeOfPacket)
 {
-	//패킷조립
+	//Assemble Packet
 	FByteArrayRef buffArrPtr = MakeShared<TArray<uint8>, ESPMode::ThreadSafe>(TArray<uint8>());
 	buffArrPtr.Get()->AddUninitialized(sizeOfPacket);
 	FMemory::Memcpy(buffArrPtr.Get()->GetData(), buffer, sizeOfPacket);
@@ -198,11 +182,49 @@ void TCPClientController::PutMessage(uint8* buffer, int32 sizeOfPacket)
 	MessageQueue->Push(buffArrPtr);
 }
 
-
-
 void TCPClientController::DisconnectCallback(FAsyncResultRef result)
 {
 	bool shutdownNormally = std::any_cast<bool>(result->State);
 	Session->DisconnectedCallback(shutdownNormally);
 }
 
+void TCPClientController::PrintErrorMessage(int error)
+{
+	switch (error)
+	{
+	case None:
+		break;
+	case Connect_AddressisNotValid:
+		UE_LOG(LogTemp, Error, TEXT("Address is Not Valid."));
+		break;
+	case Connect_Closed:
+		UE_LOG(LogTemp, Error, TEXT("This TCP Client was Closed. Please Create New TCP Client"));
+		break;
+	case Connect_AlreadyConnected:
+		UE_LOG(LogTemp, Error, TEXT("This Session Already Connected"));
+		break;
+	case Connect_CallbackIsNull:
+		UE_LOG(LogTemp, Error, TEXT("Callback is null"));
+		break;
+	case Connect_SockeSubsystemIsNull:
+		UE_LOG(LogTemp, Error, TEXT("SocketSubsytem is null"));
+		break;
+	case Send_NotConnected:
+		UE_LOG(LogTemp, Error, TEXT("Not Connected but try to send Message"));
+		break;
+	case Send_CallbackIsNull:
+		UE_LOG(LogTemp, Error, TEXT("BeginSend callback is null"));
+		break;
+	case Recv_NotConnected:
+		UE_LOG(LogTemp, Error, TEXT("Not Connected but try to receive message"));
+		break;
+	case Recv_CallbackIsNull:
+		UE_LOG(LogTemp, Error, TEXT("BeginRecv callback is null"));
+		break;
+	case Recv_ProhibitDoubleReceiving:
+		UE_LOG(LogTemp, Error, TEXT("You had call the BeginRecv before receiving message is finished"));
+		break;
+	default:
+		break;
+	}
+}

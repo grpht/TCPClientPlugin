@@ -12,8 +12,26 @@ TCPBufferReader::TCPBufferReader(uint8* buffer, uint32 size, uint32 pos)
 {
 }
 
+TCPBufferReader::TCPBufferReader(const TArray<uint8>& bufferArray, uint32 pos)
+{
+    Init(bufferArray, pos);
+}
+
 TCPBufferReader::~TCPBufferReader()
 {
+}
+
+void TCPBufferReader::Init(uint8* buffer, uint32 size, uint32 pos)
+{
+    _buffer = buffer;
+    _size = size;
+    _pos = pos;
+}
+
+void TCPBufferReader::Init(const TArray<uint8>& bufferArray, uint32 pos)
+{
+    TArray<uint8>& arr = const_cast<TArray<uint8>&>(bufferArray);
+    Init(arr.GetData(), arr.Num(), pos);
 }
 
 bool TCPBufferReader::Peek(void* dest, uint32 len)
@@ -69,11 +87,41 @@ bool TCPBufferReader::ReadBoolean()
     return ret;
 }
 
+float TCPBufferReader::ReadHalf()
+{
+    float ret;
+    Read(&ret, 2);
+    return ret;
+}
 
-FString TCPBufferReader::ReadStringUTF8(int length)
+float TCPBufferReader::ReadSingle()
+{
+    float ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+double TCPBufferReader::ReadDouble()
+{
+    double ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+TArray<uint8> TCPBufferReader::ReadBytes(uint32 length)
 {
     TArray<uint8> dest;
     dest.AddUninitialized(length);
     Read(dest.GetData(), length);
+    return dest;
+}
+
+FString TCPBufferReader::ReadStringUTF8()
+{
+    int16 length = ReadInt16();
+    TArray<uint8> dest;
+    dest.AddUninitialized(length);
+    Read(dest.GetData(), length);
+    dest.Add(0);
     return UTF8_TO_TCHAR(dest.GetData());
 }

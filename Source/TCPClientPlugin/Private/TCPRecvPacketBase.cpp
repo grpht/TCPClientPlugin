@@ -3,3 +3,8 @@
 
 #include "TCPRecvPacketBase.h"
 
+UTCPRecvPacketBase* UTCPRecvPacketBase::CreateRecvPacketBP(TSubclassOf<UTCPRecvPacketBase> packet)
+{
+	UTCPRecvPacketBase* newObject = NewObject<UTCPRecvPacketBase>(GetTransientPackage(), packet);
+	return newObject;
+}

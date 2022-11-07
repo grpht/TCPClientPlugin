@@ -3,8 +3,8 @@
 #pragma once
 
 #include "CoreMinimal.h"
-
 #include "TCPClient.h"
+
 class UTCPSessionBase;
 /**
  * 
@@ -35,6 +35,7 @@ private:
 
 	bool IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfPacket);
 	void PutMessage(uint8* buffer, int32 sizeOfMessage);
+	void PrintErrorMessage(int error);
 private:
 	TCPClient client;
 	UTCPSessionBase* Session{ nullptr };

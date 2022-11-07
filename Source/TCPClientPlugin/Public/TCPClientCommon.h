@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "TCPPacketHeader.h"
 #include <any>
 typedef TSharedPtr<TArray<uint8>> FByteArrayRef;
 
@@ -19,11 +20,3 @@ struct TCPAsyncResult : TSharedFromThis<TCPAsyncResult, ESPMode::ThreadSafe>
 };
 
 typedef TSharedRef<TCPAsyncResult, ESPMode::ThreadSafe> FAsyncResultRef;
-
-//change member as you want, But don't use virtual 
-struct PacketHeader
-{
-	int32 Size; //*Don't Rename, but allow changing byte size 
-	int16 Any;
-	int16 Id;
-};

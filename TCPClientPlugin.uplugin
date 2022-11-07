@@ -3,9 +3,9 @@
 	"Version": 1,
 	"VersionName": "1.0",
 	"FriendlyName": "TCPClientPlugin",
-	"Description": "Interact with server through TCP network",
-	"Category": "Other",
-	"CreatedBy": "AWorks",
+	"Description": "Enjoy your TCP network",
+	"Category": "Networking",
+	"CreatedBy": "Elogen",
 	"CreatedByURL": "",
 	"DocsURL": "",
 	"MarketplaceURL": "",
@@ -19,7 +19,7 @@
 			"Name": "TCPClientPlugin",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"WhitelistPlatforms":[
+			"PlatformAllowList": [
 				"Win64"
 			]
 		}

@@ -27,6 +27,8 @@ public:
 
 	virtual void Deinitialize() override;
 
+	UTCPSessionBase* ConnectSession(TSubclassOf<UTCPSessionBase> session);
+
 	UFUNCTION(BlueprintCallable, Category = "TCPClientSubsystem")
 	UTCPSessionBase* ConnectSession(TSubclassOf<UTCPSessionBase> session, const FConnectedSessionDelegate& connectDelegate, const FDisconnectedSessionDelegate& disconnectDelegate);
 	

@@ -12,8 +12,11 @@ class TCPCLIENTPLUGIN_API TCPBufferReader
 public:
 	TCPBufferReader();
 	TCPBufferReader(uint8* buffer, uint32 size, uint32 pos = 0);
+	TCPBufferReader(const TArray<uint8>& bufferArray, uint32 pos = 0);
 	~TCPBufferReader();
 
+	void			Init(uint8* buffer, uint32 size, uint32 pos = 0);
+	void			Init(const TArray<uint8>& bufferArray, uint32 pos = 0);
 	uint8*			Buffer() { return _buffer; }
 	uint32			Size() { return _size; }
 	uint32			ReadSize() { return _pos; }
@@ -32,8 +35,12 @@ public:
 	int16			ReadInt16();
 	int8			ReadInt8();
 	bool			ReadBoolean();
-	
-	FString			ReadStringUTF8(int length);
+	float			ReadHalf();
+	float			ReadSingle();
+	double			ReadDouble();
+	TArray<uint8>   ReadBytes(uint32 length);
+
+	FString			ReadStringUTF8();
 
 	template<typename T>
 	TCPBufferReader& operator>>(OUT T& dest);

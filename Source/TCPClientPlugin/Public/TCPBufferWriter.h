@@ -19,4 +19,8 @@ public:
     void WriteInt16(int16 value);
     void WriteInt32(int32 value);
     void WriteInt64(int64 value);
+    void WriteSingle(float value);
+    void WriteDouble(double value);
+    void WriteStringUTF8(const FString& message);
+    void WriteByteArray(TArray<uint8>& byteArray);
 };

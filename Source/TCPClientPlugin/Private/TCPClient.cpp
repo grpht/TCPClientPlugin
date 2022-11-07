@@ -9,10 +9,10 @@
 #include "SocketSubsystem.h"
 #include "UObject/UnrealNames.h"
 #include "ThreadPool.h"
-
+#include "TCPClientError.h"
 TCPClient::TCPClient()
 {
-    ThrdPool = new ThreadPool(10);
+    ThrdPool = new ThreadPool(5);
 
     SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
     Socket = SocketSubsystem->CreateSocket(NAME_Stream, TEXT("TCPClientSocket"), false);
@@ -39,7 +39,7 @@ TCPClient::~TCPClient()
     }
 }
 
-void TCPClient::BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
+int TCPClient::BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
 {
     FIPv4Address ip;
     bool isValid = FIPv4Address::Parse(host, ip);
@@ -47,30 +47,30 @@ void TCPClient::BeginConnect(const FString host, int32 port, std::function<void(
 
     if (!isValid)
     {
-        throw std::runtime_error("Address is Not Valid.");
+        return Connect_AddressisNotValid;
     }
     BeginConnect(endpoint, connectCallback, disconnectCallback, state);
+    return 0;
 }
 
-void TCPClient::BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
+int TCPClient::BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
 {
-
 #pragma region VALIDATE_REGION
     if (bConnected.load())
     {
-        throw std::logic_error("This TCP Client Already Connected");
+        return TCPClientError::Connect_AlreadyConnected;
     }
     if (bClosed)
     {
-        throw std::logic_error("This TCP Client was Closed. Please Create New TCP Client");
+        return TCPClientError::Connect_Closed;
     }
     if (connectCallback == nullptr || disconnectCallback == nullptr)
     {
-        throw std::runtime_error("Callback is null");
+        return TCPClientError::Connect_CallbackIsNull;
     }
     if (SocketSubsystem == nullptr)
     {
-        throw std::runtime_error("SocketSubsytem is null");
+        return TCPClientError::Connect_SockeSubsystemIsNull;
     }
 #pragma endregion
 
@@ -91,26 +91,28 @@ void TCPClient::BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FA
             connectCallback(Ret);
         }
     );
+
+    return 0;
 }
 
 
-void TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state)
+int TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state)
 {
 #pragma region VALIDATE_REGION
     if (!bConnected)
     {
-        throw std::logic_error("Not Connected but try to send Message");
+        return Send_NotConnected;
     }
 
     if (callback == nullptr)
     {
-        throw std::runtime_error("BeginSend callback is null");
+        return Send_CallbackIsNull;
     }
 #pragma endregion
     SendingQueue.Enqueue(sendBuffPtr);
     if (bSending.exchange(true) == true)
     {
-        return;
+        return 0;
     }
 
     ThrdPool->EnqueueJob([=]()
@@ -143,24 +145,25 @@ void TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncR
             bSending.store(false);
         }
     );
+    return 0;
 }
 
-void TCPClient::BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FAsyncResultRef)> callback, std::any state)
+int TCPClient::BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FAsyncResultRef)> callback, std::any state)
 {
 #pragma region VALIDATE_REGION
     if (!bConnected)
     {
-        throw std::logic_error("Not Connected but try to receive message");
+        return Recv_NotConnected;
     }
 
     if (callback == nullptr)
     {
-        throw std::runtime_error("BeginRecv callback is null");
+        return Recv_CallbackIsNull;
     }
 
     if (bReceiving.exchange(true) == true)
     {
-        throw std::logic_error("You had call the BeginRecv before receiving message is finished");
+        return Recv_ProhibitDoubleReceiving;
     }
 #pragma endregion
 
@@ -188,6 +191,7 @@ void TCPClient::BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FA
             callback(Ret);
         }
     );
+    return 0;
 }
 
 void TCPClient::Disconnect(const FString& cause, bool shutdownNormally)
@@ -210,7 +214,8 @@ int32 TCPClient::SetReceiveBufferSize(int32 size)
 {
     if (size < 0)
     {
-        throw std::invalid_argument("ReceiveBuffer size must be greater than 0");
+        UE_LOG(LogTemp, Warning, TEXT("ReceiveBuffer size must be greater than 0"));
+        return -1;
     }
     int32 RecvBufferSize = 0;
     Socket->SetReceiveBufferSize(size, OUT RecvBufferSize);
@@ -221,7 +226,7 @@ int32 TCPClient::SetSendBufferSize(int32 size)
 {
     if (size < 0)
     {
-        throw std::invalid_argument("SendBuffer size must be greater than 0");
+        UE_LOG(LogTemp, Warning, TEXT("SendBuffer size must be greater than 0"));
     }
     int32 SendBufferSize = 0;
     Socket->SetSendBufferSize(size, OUT SendBufferSize);

@@ -35,11 +35,37 @@ void TCPBufferWriter::WriteInt16(int16 value)
 {
     Write(&value, sizeof(int16));
 }
+
 void TCPBufferWriter::WriteInt32(int32 value)
 {
     Write(&value, sizeof(int32));
 }
+
 void TCPBufferWriter::WriteInt64(int64 value)
 {
     Write(&value, sizeof(int64));
+}
+
+void TCPBufferWriter::WriteSingle(float value)
+{
+    Write(&value, sizeof(float));
+}
+
+void TCPBufferWriter::WriteDouble(double value)
+{
+    Write(&value, sizeof(double));
+}
+
+void TCPBufferWriter::WriteStringUTF8(const FString& message)
+{
+    FTCHARToUTF8 stringConversion(*message);
+    const uint8* stringByte = reinterpret_cast<const uint8*>(stringConversion.Get());
+    int16 length = stringConversion.Length();
+    WriteInt16(length);
+    Append(stringByte, length);
+}
+
+void TCPBufferWriter::WriteByteArray(TArray<uint8>& byteArray)
+{
+    Append(byteArray.GetData(), byteArray.Num());
 }
