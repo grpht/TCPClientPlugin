@@ -44,7 +44,7 @@ You can modify [TCPBufferReader.cpp](https://github.com/grpht/TCPClientPlugin/bl
 ![image](https://user-images.githubusercontent.com/108503849/200347348-4cdc19d6-cefe-486c-95ed-09f93844d446.png)<br>
 
 > ## Connect Session
-#### 1) Connect the Session using  'ConnectSession' method of 'TCPClientSubsystem'. This process looks complicated, but it is standardized and can be used as it is.
+#### 1) Connect the Session using  'ConnectSession' method of 'TCPClientSubsystem'. This process looks complicated, but it is standardized thus can be used as it is.
 ![image](https://user-images.githubusercontent.com/108503849/200348793-8294f34b-6a41-437f-9e54-3651ed43c833.png)
 
 > ## Get Session
