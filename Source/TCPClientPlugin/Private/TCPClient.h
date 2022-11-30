@@ -40,7 +40,7 @@ private:
     bool bClosed{ false };
     TQueue<FByteArrayRef> SendingQueue;
 
-    class ThreadPool* ThrdPool { nullptr };
+    class TCPThreadPool* ThrdPool { nullptr };
 
     std::function<void(FAsyncResultRef)> DisconnectCallback;
 };

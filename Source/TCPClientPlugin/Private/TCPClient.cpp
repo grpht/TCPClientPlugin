@@ -8,11 +8,11 @@
 #include "Sockets.h"
 #include "SocketSubsystem.h"
 #include "UObject/UnrealNames.h"
-#include "ThreadPool.h"
+#include "TCPThreadPool.h"
 #include "TCPClientError.h"
 TCPClient::TCPClient()
 {
-    ThrdPool = new ThreadPool(5);
+    ThrdPool = new TCPThreadPool(5);
 
     SocketSubsystem = ISocketSubsystem::Get(PLATFORM_SOCKETSUBSYSTEM);
     Socket = SocketSubsystem->CreateSocket(NAME_Stream, TEXT("TCPClientSocket"), false);

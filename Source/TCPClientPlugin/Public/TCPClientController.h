@@ -22,7 +22,7 @@ public:
 	int32 SetSendBufferSize(int32 size);
 	inline void SetSession(UTCPSessionBase* session) { Session = session; }
 	inline UTCPSessionBase* GetSession() { return Session; }
-	inline bool IsConnected() { return client.IsConnected(); }
+	inline bool IsConnected() { return Client.IsConnected(); }
 	void Disconnect(const FString& cause, bool shutdownNoramlly = true);
 
 	void StartSend(FByteArrayRef& Message);
@@ -37,10 +37,10 @@ private:
 	void PutMessage(uint8* buffer, int32 sizeOfMessage);
 	void PrintErrorMessage(int error);
 private:
-	TCPClient client;
+	TCPClient Client;
 	UTCPSessionBase* Session{ nullptr };
 
-	class RecvBuffer* RecvBuff { nullptr };
-	class PacketQueue* MessageQueue { nullptr };
+	class TCPRecvBuffer* RecvBuff { nullptr };
+	class TCPPacketQueue* MessageQueue { nullptr };
 };
 

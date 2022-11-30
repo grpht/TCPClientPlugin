@@ -12,12 +12,12 @@
 /**
  *
  */
-class ThreadPool
+class TCPThreadPool
 {
 public:
 public:
-    ThreadPool(size_t threadCount);
-    ~ThreadPool();
+    TCPThreadPool(size_t threadCount);
+    ~TCPThreadPool();
 
     void EnqueueJob(std::function<void()> job);
 

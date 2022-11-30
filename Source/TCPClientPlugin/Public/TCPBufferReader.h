@@ -17,7 +17,7 @@ public:
 
 	void			Init(uint8* buffer, uint32 size, uint32 pos = 0);
 	void			Init(const TArray<uint8>& bufferArray, uint32 pos = 0);
-	uint8*			Buffer() { return _buffer; }
+	uint8*			Get() { return _buffer; }
 	uint32			Size() { return _size; }
 	uint32			ReadSize() { return _pos; }
 	uint32			FreeSize() { return _size - _pos; }

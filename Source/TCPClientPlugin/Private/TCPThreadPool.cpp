@@ -1,9 +1,9 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "ThreadPool.h"
+#include "TCPThreadPool.h"
 
-ThreadPool::ThreadPool(size_t threadCount)
+TCPThreadPool::TCPThreadPool(size_t threadCount)
     : ThreadNum(threadCount)
     , bStopAllThread(false)
 {
@@ -13,7 +13,7 @@ ThreadPool::ThreadPool(size_t threadCount)
     }
 }
 
-ThreadPool::~ThreadPool()
+TCPThreadPool::~TCPThreadPool()
 {
 
     bStopAllThread = true;
@@ -25,7 +25,7 @@ ThreadPool::~ThreadPool()
     }
 }
 
-void ThreadPool::EnqueueJob(std::function<void()> job)
+void TCPThreadPool::EnqueueJob(std::function<void()> job)
 {
     if (bStopAllThread)
     {
@@ -38,12 +38,12 @@ void ThreadPool::EnqueueJob(std::function<void()> job)
     CondVar.notify_one();
 }
 
-void ThreadPool::WorkerThread()
+void TCPThreadPool::WorkerThread()
 {
     while (true)
     {
         std::unique_lock<std::mutex> lock(MtxJobQ);
-        //조건식이 false 일땐 lock을 unlock 하고 sleep, true일 때 lock을 잡고 깨어난다. 
+        // if false, lock -> unlock and sleep, if true, achieve lock an awake
         CondVar.wait(lock, [this]() { return !JobQ.empty() || bStopAllThread; });
         if (bStopAllThread && JobQ.empty())
         {

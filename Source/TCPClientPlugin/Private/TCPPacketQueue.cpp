@@ -1,28 +1,28 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 
-#include "PacketQueue.h"
+#include "TCPPacketQueue.h"
 
-PacketQueue::PacketQueue()
+TCPPacketQueue::TCPPacketQueue()
 {
 }
 
-PacketQueue::~PacketQueue()
+TCPPacketQueue::~TCPPacketQueue()
 {
 }
 
-bool PacketQueue::IsQueueEmpty()
+bool TCPPacketQueue::IsQueueEmpty()
 {
     return Queue.IsEmpty();
 }
 
-void PacketQueue::Push(const FByteArrayRef& BufferPtr)
+void TCPPacketQueue::Push(const FByteArrayRef& BufferPtr)
 {
     std::lock_guard<std::mutex> lockGuard(lock);
     Queue.Enqueue(BufferPtr);
 }
 
-FByteArrayRef PacketQueue::Pop()
+FByteArrayRef TCPPacketQueue::Pop()
 {
     std::lock_guard<std::mutex> lockGuard(lock);
     TSharedPtr<TArray<uint8>> item;
@@ -34,7 +34,7 @@ FByteArrayRef PacketQueue::Pop()
     return item;
 }
 
-TArray<FByteArrayRef> PacketQueue::PopAll()
+TArray<FByteArrayRef> TCPPacketQueue::PopAll()
 {
     TArray<FByteArrayRef> retList;
 

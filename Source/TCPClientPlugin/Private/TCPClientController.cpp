@@ -3,10 +3,9 @@
 
 #include "TCPClientController.h"
 
-#include "RecvBuffer.h"
 #include "TCPClient.h"
-#include "PacketQueue.h"
-#include "RecvBuffer.h"
+#include "TCPPacketQueue.h"
+#include "TCPRecvBuffer.h"
 #include "TCPSessionBase.h"
 #include "TCPClientError.h"
 
@@ -18,7 +17,7 @@ TCPClientController::TCPClientController()
 	SetSendBufferSize(4096);
 	//Session = new ITCPServerSession();
 	//Session->SetController(this);
-	MessageQueue = new PacketQueue();
+	MessageQueue = new TCPPacketQueue();
 }
 
 TCPClientController::~TCPClientController()
@@ -39,7 +38,7 @@ TCPClientController::~TCPClientController()
 
 void TCPClientController::StartConnect(const FString& ip, int32 port)
 {
-	int error = client.BeginConnect(ip, port, NEW_AYNC_CALLBACK(ConnectCallback), NEW_AYNC_CALLBACK(DisconnectCallback), nullptr);
+	int error = Client.BeginConnect(ip, port, NEW_AYNC_CALLBACK(ConnectCallback), NEW_AYNC_CALLBACK(DisconnectCallback), nullptr);
 	PrintErrorMessage(error);
 }
 
@@ -50,13 +49,13 @@ int32 TCPClientController::SetReceiveBufferSize(int32 size)
 		delete RecvBuff;
 		RecvBuff = nullptr;
 	}
-	RecvBuff = new RecvBuffer(size);
-	return client.SetReceiveBufferSize(2 * size);
+	RecvBuff = new TCPRecvBuffer(size);
+	return Client.SetReceiveBufferSize(2 * size);
 }
 
 int32 TCPClientController::SetSendBufferSize(int32 size)
 {
-	return client.SetSendBufferSize(2 * size);
+	return Client.SetSendBufferSize(2 * size);
 }
 
 void TCPClientController::CheckMessage()
@@ -73,20 +72,20 @@ void TCPClientController::CheckMessage()
 
 void TCPClientController::StartSend(FByteArrayRef& Message)
 {
-	int error = client.BeginSend(Message, NEW_AYNC_CALLBACK(SendCallback), Message);
+	int error = Client.BeginSend(Message, NEW_AYNC_CALLBACK(SendCallback), Message);
 	PrintErrorMessage(error);
 }
 
 void TCPClientController::StartRecv()
 {
 	RecvBuff->Clean();
-	int error = client.BeginRecv(RecvBuff->WritePos(), RecvBuff->FreeSize(), NEW_AYNC_CALLBACK(RecvCallback), nullptr);
+	int error = Client.BeginRecv(RecvBuff->WritePos(), RecvBuff->FreeSize(), NEW_AYNC_CALLBACK(RecvCallback), nullptr);
 	PrintErrorMessage(error);
 }
 
 void TCPClientController::Disconnect(const FString& cause, bool shutdownNoramlly)
 {
-	client.Disconnect(cause, shutdownNoramlly);
+	Client.Disconnect(cause, shutdownNoramlly);
 }
 
 
