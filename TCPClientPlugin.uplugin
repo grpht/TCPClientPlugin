@@ -7,8 +7,8 @@
 	"Category": "Networking",
 	"CreatedBy": "Elogen",
 	"CreatedByURL": "",
-	"DocsURL": "",
-	"MarketplaceURL": "",
+	"DocsURL": "https://github.com/grpht/TCPClientPlugin",
+	"MarketplaceURL": "com.epicgames.launcher://ue/marketplace/content/1740bee2a16e4fa3b3eb4b69f9cb0d48",
 	"SupportURL": "",
 	"CanContainContent": true,
 	"IsBetaVersion": false,
@@ -19,9 +19,14 @@
 			"Name": "TCPClientPlugin",
 			"Type": "Runtime",
 			"LoadingPhase": "Default",
-			"PlatformAllowList": [
-				"Win64"
+			"WhitelistPlatforms": [
+				"Win64",
+				"Android",
+				"Mac",
+				"IOS",
+				"Linux",
 			]
+
 		}
 	]
 }

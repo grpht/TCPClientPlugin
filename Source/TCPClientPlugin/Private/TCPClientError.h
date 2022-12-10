@@ -1,3 +1,5 @@
+// Copyright 2022. Elogen Co. All Rights Reserved.
+
 #pragma once
 
 enum TCPClientError

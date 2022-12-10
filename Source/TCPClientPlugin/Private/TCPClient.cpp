@@ -1,5 +1,4 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
+// Copyright 2022. Elogen Co. All Rights Reserved.
 
 #include "TCPClient.h"
 #include "IPAddress.h"
@@ -10,7 +9,15 @@
 #include "UObject/UnrealNames.h"
 #include "TCPThreadPool.h"
 #include "TCPClientError.h"
+
 TCPClient::TCPClient()
+    : Socket(nullptr)
+    , SocketSubsystem(nullptr)
+    , bClosed(false)
+    , bConnected(false)
+    , bSending(false)
+    , bReceiving(false)
+    , ThrdPool(nullptr)
 {
     ThrdPool = new TCPThreadPool(5);
 
@@ -39,7 +46,7 @@ TCPClient::~TCPClient()
     }
 }
 
-int TCPClient::BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
+int32 TCPClient::BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
 {
     FIPv4Address ip;
     bool isValid = FIPv4Address::Parse(host, ip);
@@ -53,7 +60,7 @@ int TCPClient::BeginConnect(const FString host, int32 port, std::function<void(F
     return 0;
 }
 
-int TCPClient::BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
+int32 TCPClient::BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state)
 {
 #pragma region VALIDATE_REGION
     if (bConnected.load())
@@ -96,7 +103,7 @@ int TCPClient::BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAs
 }
 
 
-int TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state)
+int32 TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state)
 {
 #pragma region VALIDATE_REGION
     if (!bConnected)
@@ -148,7 +155,7 @@ int TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncRe
     return 0;
 }
 
-int TCPClient::BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FAsyncResultRef)> callback, std::any state)
+int32 TCPClient::BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FAsyncResultRef)> callback, std::any state)
 {
 #pragma region VALIDATE_REGION
     if (!bConnected)

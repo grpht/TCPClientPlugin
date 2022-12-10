@@ -1,16 +1,17 @@
-// Fill out your copyright notice in the Description page of Project Settings.
+// Copyright 2022. Elogen Co. All Rights Reserved.
 
 #pragma once
 
 #include "CoreMinimal.h"
 #include "TCPClientCommon.h"
+#include "Containers/Queue.h"
+#include "Interfaces/IPv4/IPv4Endpoint.h"
+
 #include <functional>
 #include <memory>
 #include <atomic>
 #include <any>
 
-
-#include "Interfaces/IPv4/IPv4Endpoint.h"
 /**
  *
  */
@@ -20,10 +21,10 @@ public:
     TCPClient();
     ~TCPClient();
 
-    int BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state);
-    int BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state);
-    int BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state);
-    int BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FAsyncResultRef)> callback, std::any state);
+    int32 BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state);
+    int32 BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state);
+    int32 BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state);
+    int32 BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(FAsyncResultRef)> callback, std::any state);
     void Disconnect(const FString& cause, bool shutdownNormally = true);
     bool IsConnected() { return bConnected.load(); }
 
@@ -31,16 +32,16 @@ public:
     int32 SetSendBufferSize(int32 size);
 
 private:
-    class FSocket* Socket{ nullptr };
-    class ISocketSubsystem* SocketSubsystem{ nullptr };
+    class FSocket* Socket;
+    class ISocketSubsystem* SocketSubsystem;
+    bool bClosed;
 
-    std::atomic<bool> bConnected{ false };
-    std::atomic<bool> bSending{ false };
-    std::atomic<bool> bReceiving{ false };
-    bool bClosed{ false };
+    std::atomic<bool> bConnected;
+    std::atomic<bool> bSending;
+    std::atomic<bool> bReceiving;
     TQueue<FByteArrayRef> SendingQueue;
 
-    class TCPThreadPool* ThrdPool { nullptr };
+    class TCPThreadPool* ThrdPool;
 
     std::function<void(FAsyncResultRef)> DisconnectCallback;
 };
