@@ -14,7 +14,7 @@ class ITCPSendPacket
 public:
 	
 	virtual int32 GetPacketId() const = 0;
-	virtual void Serialize(TCPBufferWriter& writer) = 0;
+	virtual void AssemblePacket(TCPBufferWriter& writer) = 0;
 };
 /**
  * 
@@ -30,18 +30,14 @@ public:
 		return PacketId;
 	};
 
-	virtual void Serialize(TCPBufferWriter& writer) override
-	{
-		BufferWriter = &writer;
-		SerializeBP();
-	}
+	virtual void AssemblePacket(TCPBufferWriter& writer) override;
 
 	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket", meta = (DisplayName = "CreateSendPacket"))
 	static UTCPSendPacketBase* CreateSendPacketBP(TSubclassOf<UTCPSendPacketBase> packet);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCPSendPacket", meta = (DisplayName = "Serialize"))
-	void SerializeBP();
+	void AssemblePacketBP();
 
 	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
 	void WriteBoolean(bool value) { BufferWriter->WriteBoolean(value); }

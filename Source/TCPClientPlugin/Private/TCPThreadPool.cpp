@@ -28,7 +28,8 @@ void TCPThreadPool::EnqueueJob(std::function<void()> job)
 {
     if (bStopAllThread)
     {
-        throw std::runtime_error("ThreadPool closed");
+        UE_LOG(LogTemp, Warning, TEXT("ThreadPool already closed ~ Some messages were not sent."))
+        return;
     }
     {
         std::lock_guard<std::mutex> lock(MtxJobQ);

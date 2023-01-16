@@ -28,11 +28,7 @@ public:
 		return PacketId;
 	};
 
-	virtual void Deserialize(TCPBufferReader& reader) override
-	{
-		BufferReader = &reader;
-		DeserializeBP();
-	}
+	virtual void Deserialize(TCPBufferReader& reader) override;
 
 	UFUNCTION(BlueprintPure, Category = "TCPRecvPacket", meta = (DisplayName = "CreateSendPacket"))
 	static UTCPRecvPacketBase* CreateRecvPacketBP(TSubclassOf<UTCPRecvPacketBase> packet);

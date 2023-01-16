@@ -10,6 +10,7 @@
 #include "TCPSessionBase.generated.h"
 
 class UTCPRecvPacketBase;
+class TCPClientController;
 
 DECLARE_DELEGATE_TwoParams(FOnConnectedDelegate, const FString&, bool);
 DECLARE_DELEGATE_TwoParams(FOnDisconnectedDelegate, const FString&, bool);
@@ -76,8 +77,8 @@ protected:
 	UPROPERTY(EditAnyWhere, Category = "Session Settings")
 	int32 Port;
 private:
-	void SetController(TCPClientController* controller) { Controller = controller; }
-	TCPClientController* GetController() { return Controller; }
+	void SetController(TCPClientController* controller);
+	TCPClientController* GetController(); 
 private:
 	TCPClientController* Controller{ nullptr };
 	FOnConnectedDelegate OnConnected;

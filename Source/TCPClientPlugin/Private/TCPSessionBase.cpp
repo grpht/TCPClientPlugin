@@ -35,7 +35,7 @@ void UTCPSessionBase::SendPacket(ITCPSendPacket& sendPacket)
 	int indexId = writer.Reserve(sizeof(TCPPacketHeader::Id));
 	
 
-	sendPacket.Serialize(writer);
+	sendPacket.AssemblePacket(writer);
 	
 	int packetSize = writer.Num();
 	//int any = -1;
@@ -143,4 +143,14 @@ void UTCPSessionBase::RegisterRecvPacket(TSubclassOf<UTCPRecvPacketBase> recvPac
 	auto c = *recvPacket;
 	auto cdo = recvPacket.GetDefaultObject();
 	RecvPacketMap.Add(cdo->GetPacketId(), *recvPacket);
+}
+
+void UTCPSessionBase::SetController(TCPClientController* controller)
+{
+	Controller = controller;
+}
+
+TCPClientController* UTCPSessionBase::GetController()
+{
+	return Controller;
 }

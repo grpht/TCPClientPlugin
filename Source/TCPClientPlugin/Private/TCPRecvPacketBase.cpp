@@ -2,6 +2,12 @@
 
 #include "TCPRecvPacketBase.h"
 
+void UTCPRecvPacketBase::Deserialize(TCPBufferReader& reader)
+{
+	BufferReader = &reader;
+	DeserializeBP();
+}
+
 UTCPRecvPacketBase* UTCPRecvPacketBase::CreateRecvPacketBP(TSubclassOf<UTCPRecvPacketBase> packet)
 {
 	UTCPRecvPacketBase* newObject = NewObject<UTCPRecvPacketBase>(GetTransientPackage(), packet);
