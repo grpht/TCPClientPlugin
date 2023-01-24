@@ -5,7 +5,12 @@
 void UTCPRecvPacketBase::Deserialize(TCPBufferReader& reader)
 {
 	BufferReader = &reader;
-	DeserializeBP();
+}
+
+void UTCPRecvPacketBase::ConvertFromBytes(TCPBufferReader& reader)
+{
+	BufferReader = &reader;
+	ConvertFromBytesBP();
 }
 
 UTCPRecvPacketBase* UTCPRecvPacketBase::CreateRecvPacketBP(TSubclassOf<UTCPRecvPacketBase> packet)

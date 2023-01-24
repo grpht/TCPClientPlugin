@@ -5,7 +5,12 @@
 void UTCPSendPacketBase::AssemblePacket(TCPBufferWriter& writer)
 {
     BufferWriter = &writer;
-    AssemblePacketBP();
+}
+
+void UTCPSendPacketBase::ConvertToBytes(TCPBufferWriter& writer)
+{
+	BufferWriter = &writer;
+	ConvertToBytesBP();
 }
 
 UTCPSendPacketBase* UTCPSendPacketBase::CreateSendPacketBP(TSubclassOf<UTCPSendPacketBase> packet)

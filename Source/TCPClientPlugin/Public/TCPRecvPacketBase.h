@@ -11,7 +11,9 @@ class ITCPRecvPacket
 {
 public:
 	virtual int32 GetPacketId() const = 0;
+	[[deprecated("This function will be removed after next version, please use ConvertFromBytes(TCPBufferReader&)")]]
 	virtual void Deserialize(TCPBufferReader& reader) = 0;
+	virtual void ConvertFromBytes(TCPBufferReader& reader) = 0;
 };
 
 /**
@@ -27,15 +29,16 @@ public:
 	{
 		return PacketId;
 	};
-
+	[[deprecated("This function will be removed after next version, please use ConvertFromBytes(TCPBufferReader&)")]]
 	virtual void Deserialize(TCPBufferReader& reader) override;
+	virtual void ConvertFromBytes(TCPBufferReader& reader) override;
 
 	UFUNCTION(BlueprintPure, Category = "TCPRecvPacket", meta = (DisplayName = "CreateSendPacket"))
 	static UTCPRecvPacketBase* CreateRecvPacketBP(TSubclassOf<UTCPRecvPacketBase> packet);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCPRecvPacket", meta = (DisplayName = "Deserialize"))
-	void DeserializeBP();
+	void ConvertFromBytesBP();
 
 	UFUNCTION(BlueprintCallable, Category = "TCPRecvPacket")
 	bool ReadBoolean() { return BufferReader->ReadBoolean(); }
@@ -54,6 +57,6 @@ protected:
 
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "TCPRecvPacket")
-	int32 PacketId { -1 };
-	TCPBufferReader* BufferReader;
+	int32 PacketId = -1;
+	TCPBufferReader* BufferReader = nullptr;
 };

@@ -34,8 +34,8 @@ void UTCPSessionBase::SendPacket(ITCPSendPacket& sendPacket)
 	//int indexAny = writer.Reserve(sizeof(TCPPacketHeader::Any));
 	int indexId = writer.Reserve(sizeof(TCPPacketHeader::Id));
 	
-
 	sendPacket.AssemblePacket(writer);
+	sendPacket.ConvertToBytes(writer);
 	
 	int packetSize = writer.Num();
 	//int any = -1;
@@ -45,7 +45,7 @@ void UTCPSessionBase::SendPacket(ITCPSendPacket& sendPacket)
 	FMemory::Memcpy(&writer.GetData()[indexId], &id, sizeof(TCPPacketHeader::Id));
 
 	FByteArrayRef SendBuffPtr = ref;
-	TCPPacketHeader header = *reinterpret_cast<TCPPacketHeader*>(SendBuffPtr->GetData());
+	//TCPPacketHeader header = *reinterpret_cast<TCPPacketHeader*>(SendBuffPtr->GetData());
 	Controller->StartSend(SendBuffPtr);
 }
 
@@ -67,6 +67,7 @@ void UTCPSessionBase::OnRecv(int32 id, TCPBufferReader& reader)
 	{
 		auto packet = UTCPRecvPacketBase::CreateRecvPacketBP(*item);
 		packet->Deserialize(reader);
+		packet->ConvertFromBytes(reader);
 		OnRecvBP(packet);
 	}
 }

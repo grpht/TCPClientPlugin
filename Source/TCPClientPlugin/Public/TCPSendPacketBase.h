@@ -14,7 +14,9 @@ class ITCPSendPacket
 public:
 	
 	virtual int32 GetPacketId() const = 0;
+	[[deprecated("This function will be removed after next version, please use ConvertToBytes(TCPBufferReader&)")]]
 	virtual void AssemblePacket(TCPBufferWriter& writer) = 0;
+	virtual void ConvertToBytes(TCPBufferWriter& writer) = 0;
 };
 /**
  * 
@@ -29,15 +31,16 @@ public:
 	{
 		return PacketId;
 	};
-
+	[[deprecated("This function will be removed after next version, please use ConvertToBytes(TCPBufferReader&)")]]
 	virtual void AssemblePacket(TCPBufferWriter& writer) override;
+	virtual void ConvertToBytes(TCPBufferWriter& writer) override;
 
 	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket", meta = (DisplayName = "CreateSendPacket"))
 	static UTCPSendPacketBase* CreateSendPacketBP(TSubclassOf<UTCPSendPacketBase> packet);
 
 protected:
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCPSendPacket", meta = (DisplayName = "Serialize"))
-	void AssemblePacketBP();
+	void ConvertToBytesBP();
 
 	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket")
 	void WriteBoolean(bool value) { BufferWriter->WriteBoolean(value); }
@@ -57,6 +60,6 @@ protected:
 	void WriteByteArray(UPARAM(ref) TArray<uint8>& byteArray) { BufferWriter->WriteByteArray(byteArray); }
 protected:
 	UPROPERTY(EditDefaultsOnly, Category = "TCPSendPacket")
-	int32 PacketId { -1 };
-	TCPBufferWriter* BufferWriter;
+	int32 PacketId = -1;
+	TCPBufferWriter* BufferWriter = nullptr;
 };
