@@ -7,6 +7,7 @@
 #include "TCPRecvBuffer.h"
 #include "TCPSessionBase.h"
 #include "TCPClientError.h"
+#include "TCPHeaderComponent.h"
 
 #define NEW_AYNC_CALLBACK(FuncName) [this](FAsyncResultRef res){ if(this != nullptr) FuncName(res);}
 
@@ -14,8 +15,6 @@ TCPClientController::TCPClientController()
 {
 	SetReceiveBufferSize(4096);
 	SetSendBufferSize(4096);
-	//Session = new ITCPServerSession();
-	//Session->SetController(this);
 	MessageQueue = new TCPPacketQueue();
 }
 
@@ -33,7 +32,6 @@ TCPClientController::~TCPClientController()
 		MessageQueue = nullptr;
 	}
 }
-
 
 void TCPClientController::StartConnect(const FString& ip, int32 port)
 {
@@ -127,6 +125,12 @@ void TCPClientController::RecvCallback(FAsyncResultRef result)
 			return;
 		}
 
+		if (Header == nullptr)
+		{
+			Disconnect("Header is null", false);
+			return;
+		}
+
 		int32 recvSize = RecvBuff->DataSize();
 		uint8* buffer = RecvBuff->ReadPos();
 
@@ -154,21 +158,23 @@ void TCPClientController::RecvCallback(FAsyncResultRef result)
 	}
 }
 
-bool TCPClientController::IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfMessage)
+bool TCPClientController::IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfMessage) const
 {
-	if (dataSize < sizeof(TCPPacketHeader))
+	if (dataSize < Header->GetHeaderSize())
 	{
 		return false;
 	}
 
-	TCPPacketHeader header = *(reinterpret_cast<TCPPacketHeader*>(buffer));
-	sizeOfMessage = header.Size;
-	if (dataSize < header.Size)
+	const int32 messageSize = Header->ReadTotalSize(buffer);
+
+	sizeOfMessage = messageSize;
+	if (dataSize < messageSize)
 	{
 		return false;
 	}
 	return true;
 }
+
 
 void TCPClientController::PutMessage(uint8* buffer, int32 sizeOfPacket)
 {

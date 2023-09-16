@@ -4,7 +4,6 @@
 
 #include "CoreMinimal.h"
 #include <any>
-#include "TCPPacketHeader.h"
 
 typedef TSharedPtr<TArray<uint8>> FByteArrayRef;
 

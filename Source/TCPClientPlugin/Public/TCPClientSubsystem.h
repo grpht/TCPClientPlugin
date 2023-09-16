@@ -71,4 +71,6 @@ public:
 private:
 	UPROPERTY()
 	TMap<FString, UTCPSessionBase*> Sessions;
+	UPROPERTY()
+	TArray<UClass*> Handlers;
 };

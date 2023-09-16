@@ -11,8 +11,6 @@ class ITCPRecvPacket
 {
 public:
 	virtual int32 GetPacketId() const = 0;
-	[[deprecated("This function will be removed after next version, please use ConvertFromBytes(TCPBufferReader&)")]]
-	virtual void Deserialize(TCPBufferReader& reader) = 0;
 	virtual void ConvertFromBytes(TCPBufferReader& reader) = 0;
 };
 
@@ -29,8 +27,6 @@ public:
 	{
 		return PacketId;
 	};
-	[[deprecated("This function will be removed after next version, please use ConvertFromBytes(TCPBufferReader&)")]]
-	virtual void Deserialize(TCPBufferReader& reader) override;
 	virtual void ConvertFromBytes(TCPBufferReader& reader) override;
 
 	UFUNCTION(BlueprintPure, Category = "TCPRecvPacket", meta = (DisplayName = "CreateSendPacket"))

@@ -7,10 +7,12 @@
 #include "TCPClientCommon.h"
 #include "TCPSendPacketBase.h"
 #include "TCPRecvPacketBase.h"
+
 #include "TCPSessionBase.generated.h"
 
 class UTCPRecvPacketBase;
 class TCPClientController;
+class UTCPHeaderComponent;
 
 DECLARE_DELEGATE_TwoParams(FOnConnectedDelegate, const FString&, bool);
 DECLARE_DELEGATE_TwoParams(FOnDisconnectedDelegate, const FString&, bool);
@@ -40,6 +42,7 @@ public:
 	const FString& GetIp() const { return Ip; }
 	UFUNCTION(BlueprintCallable, Category = "TCPSession")
 	const int32 GetPort() const { return Port; }
+	void SetHeader(TSubclassOf<UTCPHeaderComponent>& header) { CustomHeader = header; }
 protected:
 	virtual void OnStart();
 	UFUNCTION(BlueprintImplementableEvent, Category = "TCPSession", meta = (DisplayName = "OnStart"))
@@ -83,5 +86,12 @@ private:
 	TCPClientController* Controller{ nullptr };
 	FOnConnectedDelegate OnConnected;
 	FOnDisconnectedDelegate OnDisconnected;
+	UPROPERTY()
 	TMap<int32, UClass*> RecvPacketMap;
+
+
+	UPROPERTY(EditDefaultsOnly)
+	TSubclassOf<UTCPHeaderComponent> CustomHeader;
+	UPROPERTY()
+	UTCPHeaderComponent* Header;
 };

@@ -2,11 +2,6 @@
 
 #include "TCPSendPacketBase.h"
 
-void UTCPSendPacketBase::AssemblePacket(TCPBufferWriter& writer)
-{
-    BufferWriter = &writer;
-}
-
 void UTCPSendPacketBase::ConvertToBytes(TCPBufferWriter& writer)
 {
 	BufferWriter = &writer;

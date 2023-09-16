@@ -5,10 +5,12 @@
 #include "TCPClientController.h"
 #include "TCPSendPacketBase.h"
 #include "TCPRecvPacketBase.h"
+#include "TCPHeaderComponent.h"
 
 #include "Serialization/BufferArchive.h"
 #include "TCPBufferReader.h"
 #include "TCPBufferWriter.h"
+
 
 bool UTCPSessionBase::IsConnected()
 {
@@ -30,27 +32,28 @@ void UTCPSessionBase::SendPacket(ITCPSendPacket& sendPacket)
 	TSharedRef<TCPBufferWriter, ESPMode::ThreadSafe> ref(new TCPBufferWriter());
 	TCPBufferWriter& writer = ref.Get();
 
-	int indexSize = writer.Reserve(sizeof(TCPPacketHeader::Size));
-	//int indexAny = writer.Reserve(sizeof(TCPPacketHeader::Any));
-	int indexId = writer.Reserve(sizeof(TCPPacketHeader::Id));
-	
-	sendPacket.AssemblePacket(writer);
+	writer.Reserve(Header->GetHeaderSize());
 	sendPacket.ConvertToBytes(writer);
-	
-	int packetSize = writer.Num();
-	//int any = -1;
+
 	int id = sendPacket.GetPacketId();
-	FMemory::Memcpy(&writer.GetData()[indexSize], &packetSize, sizeof(TCPPacketHeader::Size));
-	//FMemory::Memcpy(&writer.GetData()[indexAny], &any, sizeof(TCPPacketHeader::Any));
-	FMemory::Memcpy(&writer.GetData()[indexId], &id, sizeof(TCPPacketHeader::Id));
+	Header->WriteHeader(writer, id);
 
 	FByteArrayRef SendBuffPtr = ref;
-	//TCPPacketHeader header = *reinterpret_cast<TCPPacketHeader*>(SendBuffPtr->GetData());
 	Controller->StartSend(SendBuffPtr);
 }
 
 void UTCPSessionBase::OnStart()
 {
+	if (CustomHeader)
+	{
+		Header = NewObject<UTCPHeaderComponent>(this, CustomHeader);
+	}
+	else
+	{
+		Header = NewObject<UTCPHeaderComponent>(this);
+	}
+	Controller->SetHeader(Header);
+
 	OnStartBP();
 }
 
@@ -66,7 +69,6 @@ void UTCPSessionBase::OnRecv(int32 id, TCPBufferReader& reader)
 	if (item != nullptr)
 	{
 		auto packet = UTCPRecvPacketBase::CreateRecvPacketBP(*item);
-		packet->Deserialize(reader);
 		packet->ConvertFromBytes(reader);
 		OnRecvBP(packet);
 	}
@@ -105,37 +107,31 @@ void UTCPSessionBase::DisconnectedCallback(bool normalShutdown)
 void UTCPSessionBase::RecvMessageCallback(FByteArrayRef& messageByte)
 {
 	uint8* buffer = messageByte->GetData();
-	int headerSize = sizeof(TCPPacketHeader);
-	TCPPacketHeader header = *reinterpret_cast<TCPPacketHeader*>(buffer);
-	//int32 any = header.Any;
-	int32 contentsSize = header.Size - headerSize;
+	int32 contentsSize = Header->ReadTotalSize(buffer) - Header->GetHeaderSize();
 	
 	if (contentsSize == 0)
 	{
 		TCPBufferReader reader;
-		OnRecv(header.Id, reader);
+		OnRecv(Header->ReadProtocol(buffer), reader);
 	}
 	else
 	{
-		TCPBufferReader reader(&buffer[headerSize], contentsSize);
-		OnRecv(header.Id, reader);
+		TCPBufferReader reader(&buffer[Header->GetHeaderSize()], contentsSize);
+		OnRecv(Header->ReadProtocol(buffer), reader);
 	}
 }
 
 void UTCPSessionBase::SendMessageCallback(FByteArrayRef& messageByte)
 {
 	uint8* buffer = messageByte->GetData();
-	int headerSize = sizeof(TCPPacketHeader);
-	TCPPacketHeader header = *reinterpret_cast<TCPPacketHeader*>(buffer);
-	//int32 any = header.Any;
-	int32 contentsSize = header.Size - headerSize;
+	int32 contentsSize = Header->ReadTotalSize(buffer) - Header->GetHeaderSize();
 	if (contentsSize == 0)
 	{
-		OnSend(header.Id, contentsSize, *messageByte);
+		OnSend(Header->ReadProtocol(buffer), contentsSize, *messageByte);
 	}
 	else
 	{
-		OnSend(header.Id, contentsSize, *messageByte);
+		OnSend(Header->ReadProtocol(buffer), contentsSize, *messageByte);
 	}
 }
 

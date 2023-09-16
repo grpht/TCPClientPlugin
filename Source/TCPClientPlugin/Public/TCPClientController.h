@@ -6,6 +6,7 @@
 #include "TCPClient.h"
 
 class UTCPSessionBase;
+class UTCPHeaderComponent;
 /**
  * 
  */
@@ -21,6 +22,7 @@ public:
 	int32 SetReceiveBufferSize(int32 size);
 	int32 SetSendBufferSize(int32 size);
 	inline void SetSession(UTCPSessionBase* session) { Session = session; }
+	inline void SetHeader(UTCPHeaderComponent* header) { Header = header; }
 	inline UTCPSessionBase* GetSession() { return Session; }
 	inline bool IsConnected() { return Client.IsConnected(); }
 	void Disconnect(const FString& cause, bool shutdownNoramlly = true);
@@ -33,12 +35,13 @@ private:
 	void RecvCallback(FAsyncResultRef result);
 	void DisconnectCallback(FAsyncResultRef result);
 
-	bool IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfPacket);
+	bool IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfMessage) const;
 	void PutMessage(uint8* buffer, int32 sizeOfMessage);
 	void PrintErrorMessage(int error);
 private:
 	TCPClient Client;
 	UTCPSessionBase* Session{ nullptr };
+	UTCPHeaderComponent* Header{ nullptr };
 
 	class TCPRecvBuffer* RecvBuff { nullptr };
 	class TCPPacketQueue* MessageQueue { nullptr };

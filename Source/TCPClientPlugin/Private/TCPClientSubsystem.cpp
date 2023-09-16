@@ -27,13 +27,13 @@ UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase
     UTCPSessionBase* newSession = NewObject<UTCPSessionBase>(this, session, TEXT("TCPSession"));
     DisconnectSessionByName(newSession->GetName());
 
-    newSession->OnStart();
-    newSession->OnConnected.BindUFunction(this, FName("ConnectedCallback"));
-    newSession->OnDisconnected.BindUFunction(this, FName("DisConnectedCallback"));
-
     TCPClientController* controller = new TCPClientController();
     controller->SetSession(newSession);
     newSession->SetController(controller);
+
+    newSession->OnStart();
+    newSession->OnConnected.BindUFunction(this, FName("ConnectedCallback"));
+    newSession->OnDisconnected.BindUFunction(this, FName("DisConnectedCallback"));
 
     Sessions.Add(newSession->GetName(), newSession);
 

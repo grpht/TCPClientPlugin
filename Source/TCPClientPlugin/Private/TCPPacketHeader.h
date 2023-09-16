@@ -8,8 +8,7 @@
 #pragma pack(push, 1)
 struct TCPPacketHeader
 {
-	int32 Size; //*Don't Rename, but allow changing byte size 
-	//int16 Any; //add or remove any header
+	int32 Size;
 	int16 Id;
 };
 #pragma pack(pop)

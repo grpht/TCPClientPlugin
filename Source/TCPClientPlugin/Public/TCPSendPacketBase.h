@@ -14,8 +14,6 @@ class ITCPSendPacket
 public:
 	
 	virtual int32 GetPacketId() const = 0;
-	[[deprecated("This function will be removed after next version, please use ConvertToBytes(TCPBufferReader&)")]]
-	virtual void AssemblePacket(TCPBufferWriter& writer) = 0;
 	virtual void ConvertToBytes(TCPBufferWriter& writer) = 0;
 };
 /**
@@ -31,8 +29,6 @@ public:
 	{
 		return PacketId;
 	};
-	[[deprecated("This function will be removed after next version, please use ConvertToBytes(TCPBufferReader&)")]]
-	virtual void AssemblePacket(TCPBufferWriter& writer) override;
 	virtual void ConvertToBytes(TCPBufferWriter& writer) override;
 
 	UFUNCTION(BlueprintCallable, Category = "TCPSendPacket", meta = (DisplayName = "CreateSendPacket"))

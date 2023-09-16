@@ -2,11 +2,6 @@
 
 #include "TCPRecvPacketBase.h"
 
-void UTCPRecvPacketBase::Deserialize(TCPBufferReader& reader)
-{
-	BufferReader = &reader;
-}
-
 void UTCPRecvPacketBase::ConvertFromBytes(TCPBufferReader& reader)
 {
 	BufferReader = &reader;
