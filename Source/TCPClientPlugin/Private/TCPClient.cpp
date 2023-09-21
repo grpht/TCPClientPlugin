@@ -122,7 +122,7 @@ int32 TCPClient::BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsync
         return 0;
     }
 
-    ThrdPool->EnqueueJob([this, RemoteAddress, state, connectCallback]()
+    ThrdPool->EnqueueJob([this, state, callback]()
         {
             while (!SendingQueue.IsEmpty() && bConnected)
             {
@@ -174,7 +174,7 @@ int32 TCPClient::BeginRecv(uint8* buffer, int32 bufferSize, std::function<void(F
     }
 #pragma endregion
 
-    ThrdPool->EnqueueJob([this, RemoteAddress, state, connectCallback]()
+    ThrdPool->EnqueueJob([this, buffer, bufferSize, state, callback]()
         {
             int32 byteRead = 0;
             if (Socket == nullptr) return;
