@@ -50,7 +50,7 @@ void UTCPSessionBase::OnStart()
 	}
 	else
 	{
-		Header = NewObject<UTCPHeaderComponent>(this);
+		Header = NewObject<UTCPHeaderComponent>();
 	}
 	Controller->SetHeader(Header);
 

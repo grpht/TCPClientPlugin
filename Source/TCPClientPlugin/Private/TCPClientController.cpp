@@ -35,6 +35,11 @@ TCPClientController::~TCPClientController()
 
 void TCPClientController::StartConnect(const FString& ip, int32 port)
 {
+	if (Header == nullptr)
+	{
+		auto Ret = MakeShared<TCPAsyncResult, ESPMode::ThreadSafe >(false, 0);
+		DisconnectCallback(Ret);
+	}
 	int error = Client.BeginConnect(ip, port, NEW_AYNC_CALLBACK(ConnectCallback), NEW_AYNC_CALLBACK(DisconnectCallback), nullptr);
 	PrintErrorMessage(error);
 }

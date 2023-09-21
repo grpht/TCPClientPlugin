@@ -5,7 +5,6 @@
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
 #include "TCPBufferWriter.h"
-#include "TCPClientCommon.h"
 
 #include "TCPHeaderComponent.generated.h"
 

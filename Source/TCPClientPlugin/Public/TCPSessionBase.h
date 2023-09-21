@@ -4,15 +4,16 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "Templates/SubclassOf.h"
 #include "TCPClientCommon.h"
 #include "TCPSendPacketBase.h"
 #include "TCPRecvPacketBase.h"
+#include "TCPHeaderComponent.h"
 
 #include "TCPSessionBase.generated.h"
 
 class UTCPRecvPacketBase;
 class TCPClientController;
-class UTCPHeaderComponent;
 
 DECLARE_DELEGATE_TwoParams(FOnConnectedDelegate, const FString&, bool);
 DECLARE_DELEGATE_TwoParams(FOnDisconnectedDelegate, const FString&, bool);
@@ -79,6 +80,9 @@ protected:
 	FString Ip;
 	UPROPERTY(EditAnyWhere, Category = "Session Settings")
 	int32 Port;
+	UPROPERTY(EditDefaultsOnly, Category = "Packet Header")
+	TSubclassOf<UTCPHeaderComponent> CustomHeader;
+
 private:
 	void SetController(TCPClientController* controller);
 	TCPClientController* GetController(); 
@@ -89,9 +93,6 @@ private:
 	UPROPERTY()
 	TMap<int32, UClass*> RecvPacketMap;
 
-
-	UPROPERTY(EditDefaultsOnly)
-	TSubclassOf<UTCPHeaderComponent> CustomHeader;
 	UPROPERTY()
 	UTCPHeaderComponent* Header;
 };
