@@ -24,6 +24,8 @@ Because of It is only maden by C++17 and unreal libray, any device that supports
 ![packetPolicy](https://user-images.githubusercontent.com/108503849/200338239-f9c90ad4-9d46-40e6-812d-13c37dc71914.png)<br>
 You can modify [TCPPacketHeader.h](https://github.com/grpht/TCPClientPlugin/blob/master/Source/TCPClientPlugin/Private/TCPPacketHeader.h) file to change the packet policy.<br>
 When you want to add other variable into header, you have to change 'SendPacket' method in [TCPSessionBase.cpp](https://github.com/grpht/TCPClientPlugin/blob/master/Source/TCPClientPlugin/Private/TCPSessionBase.cpp)
+- **The 1.3 update allows users to customize packet policy.**
+- **More Details are in section 5 below**
 
 ## String Policy
 ![stringPolicy](https://user-images.githubusercontent.com/108503849/200338328-4ec15dec-2a46-4d3c-879f-a4597cd45889.png)<br>
