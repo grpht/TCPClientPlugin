@@ -74,3 +74,21 @@ You can modify [TCPBufferReader.cpp](https://github.com/grpht/TCPClientPlugin/bl
 # 4. Life Cycle of Session 
 ![image](https://user-images.githubusercontent.com/108503849/200497378-5dfc9123-c077-4a71-8d7d-7e119b843b2f.png)
 
+# 5. Customizing Policy of Header
+#### 1) Create Your HeaderComponent by inheriting UTCPHeaderComponent and Make Your Own Header struct
+![image](https://github.com/grpht/TCPClientPlugin/assets/108503849/567aef2e-bf95-46a5-84f5-6c8f2d1ee552)
+- notice : It is very important to wrap the header in a 'pragma pack' to make it the correct size.
+
+#### 2) Implementing Method
+![image](https://github.com/grpht/TCPClientPlugin/assets/108503849/a66a4b18-f579-4e45-80b0-27a4bb8c8814)
+- GetHeaderSize : Specify the size of your header
+- WriteHeader : Defines a rule for the header when the packet is sent.
+- ReadTotalSize : Override this function so that the session can interpret the size of your header
+- ReadProtocol : Override this function so that the session can interpret the id(or protocol) of your header
+
+#### 3) Applying header to session
+![image](https://github.com/grpht/TCPClientPlugin/assets/108503849/ef73d63f-ac91-4c99-bcec-1bd0d32a9450)
+- Apply your HeaderComponent to the custom header entry in the session
+
+
+
