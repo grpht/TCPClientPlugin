@@ -4,7 +4,10 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "UObject/Class.h"
 #include "TCPBufferReader.h"
+
+
 #include "TCPRecvPacketBase.generated.h"
 
 class ITCPRecvPacket
@@ -30,7 +33,7 @@ public:
 	virtual void ConvertFromBytes(TCPBufferReader& reader) override;
 
 	UFUNCTION(BlueprintPure, Category = "TCPRecvPacket",
-		meta = (DisplayName = "CreateSendPacket"))
+		meta = (DisplayName = "CreateRecvPacket"))
 	static UTCPRecvPacketBase* CreateRecvPacketBP(TSubclassOf<UTCPRecvPacketBase> packet);
 
 protected:

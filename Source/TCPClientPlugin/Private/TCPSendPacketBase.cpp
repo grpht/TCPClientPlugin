@@ -1,6 +1,7 @@
 // Copyright 2022. Elogen Co. All Rights Reserved.
 
 #include "TCPSendPacketBase.h"
+#include "Templates/SubclassOf.h"
 
 void UTCPSendPacketBase::ConvertToBytes(TCPBufferWriter& writer)
 {

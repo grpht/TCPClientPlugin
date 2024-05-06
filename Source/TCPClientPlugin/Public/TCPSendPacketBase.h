@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "UObject/NoExportTypes.h"
+#include "UObject/Class.h"
 #include "TCPBufferWriter.h"
 
 #include "TCPSendPacketBase.generated.h"
