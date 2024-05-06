@@ -34,12 +34,29 @@ void UTCPSessionBase::SendPacket(ITCPSendPacket& sendPacket)
 
 	writer.Reserve(Header->GetHeaderSize());
 	sendPacket.ConvertToBytes(writer);
-
 	int id = sendPacket.GetPacketId();
 	Header->WriteHeader(writer, id);
 
 	FByteArrayRef SendBuffPtr = ref;
 	Controller->StartSend(SendBuffPtr);
+}
+
+void UTCPSessionBase::SendPacketBP(UTCPSendPacketBase* sendPacket)
+{
+	if (sendPacket == nullptr)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Sendpacket is null"))
+		check(sendPacket != nullptr)
+		return;
+	}
+	SendPacket(*sendPacket);
+}
+
+void UTCPSessionBase::RegisterRecvPacket(TSubclassOf<UTCPRecvPacketBase> recvPacket)
+{
+	auto c = *recvPacket;
+	auto cdo = recvPacket.GetDefaultObject();
+	RecvPacketMap.Add(cdo->GetPacketId(), *recvPacket);
 }
 
 void UTCPSessionBase::OnStart()
@@ -54,13 +71,12 @@ void UTCPSessionBase::OnStart()
 	}
 	Controller->SetHeader(Header);
 
-	OnStartBP();
-}
+	for (auto recvPacket : PacketToReceive)
+	{
+		RegisterRecvPacket(recvPacket);
+	}
 
-void UTCPSessionBase::OnDestroy()
-{
-	OnDestroyBP();
-	RecvPacketMap.Empty();
+	OnStartBP();
 }
 
 void UTCPSessionBase::OnRecv(int32 id, TCPBufferReader& reader)
@@ -79,11 +95,10 @@ void UTCPSessionBase::OnSend(int32 id, int32 contentsByteSize, const TArray<uint
 	OnSendBP(id, contentsByteSize, fullByteArray);
 }
 
-
-void UTCPSessionBase::SendPacketBP(UTCPSendPacketBase* sendPacket)
+void UTCPSessionBase::OnDestroy()
 {
-	checkf(sendPacket != nullptr, TEXT("Sendpacket is null"))
-	SendPacket(*sendPacket);
+	OnDestroyBP();
+	RecvPacketMap.Empty();
 }
 
 void UTCPSessionBase::ConnectedCallback(bool success)
@@ -108,7 +123,10 @@ void UTCPSessionBase::RecvMessageCallback(FByteArrayRef& messageByte)
 {
 	uint8* buffer = messageByte->GetData();
 	int32 contentsSize = Header->ReadTotalSize(buffer) - Header->GetHeaderSize();
-	
+	if (!Header->CheckIntegrity(buffer))
+	{
+		Controller->Disconnect("Invalid data received. Integrity check unsuccessful.", false);
+	}
 	if (contentsSize == 0)
 	{
 		TCPBufferReader reader;
@@ -125,21 +143,7 @@ void UTCPSessionBase::SendMessageCallback(FByteArrayRef& messageByte)
 {
 	uint8* buffer = messageByte->GetData();
 	int32 contentsSize = Header->ReadTotalSize(buffer) - Header->GetHeaderSize();
-	if (contentsSize == 0)
-	{
-		OnSend(Header->ReadProtocol(buffer), contentsSize, *messageByte);
-	}
-	else
-	{
-		OnSend(Header->ReadProtocol(buffer), contentsSize, *messageByte);
-	}
-}
-
-void UTCPSessionBase::RegisterRecvPacket(TSubclassOf<UTCPRecvPacketBase> recvPacket)
-{
-	auto c = *recvPacket;
-	auto cdo = recvPacket.GetDefaultObject();
-	RecvPacketMap.Add(cdo->GetPacketId(), *recvPacket);
+	OnSend(Header->ReadProtocol(buffer), contentsSize, *messageByte);
 }
 
 void UTCPSessionBase::SetController(TCPClientController* controller)

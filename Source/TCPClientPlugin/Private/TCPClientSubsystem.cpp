@@ -2,6 +2,10 @@
 
 #include "TCPClientSubsystem.h"
 #include "TCPClientController.h"
+#include "IPAddressAsyncResolve.h"
+#include "SocketSubsystem.h"
+#include "Async/Async.h"
+#include "Kismet/GameplayStatics.h"
 
 void UTCPClientSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 {
@@ -26,18 +30,33 @@ UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase
 
     UTCPSessionBase* newSession = NewObject<UTCPSessionBase>(this, session, TEXT("TCPSession"));
     DisconnectSessionByName(newSession->GetName());
+    Sessions.Add(newSession->GetName(), newSession);
 
     TCPClientController* controller = new TCPClientController();
     controller->SetSession(newSession);
     newSession->SetController(controller);
-
-    newSession->OnStart();
     newSession->OnConnected.BindUFunction(this, FName("ConnectedCallback"));
     newSession->OnDisconnected.BindUFunction(this, FName("DisConnectedCallback"));
-
-    Sessions.Add(newSession->GetName(), newSession);
-
-    controller->StartConnect(newSession->GetIp(), newSession->GetPort());
+    newSession->OnStart();
+    
+    if (newSession->DNS)
+    {
+        GetDomainIpAddress(newSession->GetIp(),
+            [this, newSession](FString ip, bool success)
+            {
+                if (success)
+                    newSession->GetController()->StartConnect(ip, newSession->GetPort());
+                else
+                {
+                    UE_LOG(LogTemp, Error, TEXT("Failed to resolve the DNS address"))
+                    ConnectedCallback(newSession->GetName(), false);
+                }
+            }
+        );
+    }
+    else
+        newSession->GetController()->StartConnect(newSession->GetIp(), newSession->GetPort());
+   
     return newSession;
 }
 
@@ -52,10 +71,12 @@ UTCPSessionBase* UTCPClientSubsystem::ConnectSession(TSubclassOf<UTCPSessionBase
     if (connectDelegate.IsBound())
     {
         OnConnected.Add(connectDelegate);
+        RegisteredConnectDelegates.Add(sessionName, &connectDelegate);
     }
     if (disconnectDelegate.IsBound())
     {
         OnDisconnected.Add(disconnectDelegate);
+        RegisteredDisconnectDelegates.Add(sessionName, &disconnectDelegate);
     }
 
     return ConnectSession(session);
@@ -74,7 +95,6 @@ void UTCPClientSubsystem::DisconnectSessionByName(const FString& sessionName)
 {
     if (Sessions.Contains(sessionName))
     {
-        
         UTCPSessionBase* Session = Sessions[sessionName];
         TCPClientController* controller = Session->GetController();
         
@@ -124,22 +144,95 @@ void UTCPClientSubsystem::DeleteController(TCPClientController* controller)
 
 void UTCPClientSubsystem::ConnectedCallback(const FString& sessionName, bool success)
 {
+    if (!Sessions.Contains(sessionName))
+        return;
+
     if (OnConnected.IsBound())
     {
         OnConnected.Broadcast(sessionName, success, Sessions[sessionName]);
+        if (RegisteredConnectDelegates.Find(sessionName))
+        {
+            auto& registedDelegate = RegisteredConnectDelegates[sessionName];
+            OnConnected.Remove(*registedDelegate);
+            RegisteredConnectDelegates.Remove(sessionName);
+        }
     }
 }
 
 void UTCPClientSubsystem::DisConnectedCallback(const FString& sessionName, bool normalShutdown)
 {
+    if (!Sessions.Contains(sessionName))
+        return;
+
+    auto session = Sessions[sessionName];
+    
     if (OnDisconnected.IsBound())
     {
         OnDisconnected.Broadcast(sessionName, normalShutdown);
+        if (RegisteredDisconnectDelegates.Find(sessionName))
+        {
+            auto& registedDelegate = RegisteredDisconnectDelegates[sessionName];
+            OnDisconnected.Remove(*registedDelegate);
+            RegisteredDisconnectDelegates.Remove(sessionName);
+        }
     }
+}
+
+void UTCPClientSubsystem::GetDomainIpAddress(const FString& URL, TFunction<void(FString, bool)> OnComplete)
+{
+    /* code by -Kmack-
+    * https://forums.unrealengine.com/t/how-to-get-host-by-name/296044/8
+    */
+    float timeOut = 10.0f;
+    Async(EAsyncExecution::ThreadPool,
+        [this, URL, timeOut, OnComplete]()
+        {
+            ISocketSubsystem* const SocketSubSystem = ISocketSubsystem::Get();
+            auto ResolveInfo = SocketSubSystem->GetHostByName(TCHAR_TO_ANSI(*URL));
+            if (ensure(SocketSubSystem))
+            {
+                float elapsedTime = 0;
+                while (!ResolveInfo->IsComplete() && elapsedTime < timeOut)
+                {
+                    FPlatformProcess::Sleep(0.05);
+                    elapsedTime += 0.05f;
+                }
+
+                if (ResolveInfo->IsComplete() && ResolveInfo->GetErrorCode() == 0)
+                {
+                    const FInternetAddr* Addr = &ResolveInfo->GetResolvedAddress();
+                    uint32 OutIP = 0;
+                    Addr->GetIp(OutIP);
+
+                    UE_LOG(LogTemp, Warning, TEXT("Found IP address for URL <%s>: %d.%d.%d.%d")
+                        , *URL, 0xff & (OutIP >> 24), 0xff & (OutIP >> 16), 0xff & (OutIP >> 8), 0xff & OutIP);
+
+                    FString IpString = Addr->ToString(false);
+                    AsyncTask(ENamedThreads::GameThread,
+                        [IpString, OnComplete]()
+                        {
+
+                            OnComplete(IpString, true);
+                        }
+                    );
+                }
+                else
+                {
+                    AsyncTask(ENamedThreads::GameThread,
+                        [OnComplete]()
+                        {
+                            OnComplete(FString(), false);
+                        }
+                    );
+                }
+            }
+        }
+    );
 }
 
 void UTCPClientSubsystem::Tick(float DeltaTime)
 {
+
     for (auto& kvp : Sessions)
     {
         UTCPSessionBase* session = kvp.Value;
@@ -148,6 +241,8 @@ void UTCPClientSubsystem::Tick(float DeltaTime)
             continue;
 
         controller->CheckMessage();
+        break;
+        
     }
 }
 

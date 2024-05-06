@@ -38,6 +38,7 @@ private:
 	bool IsOneMessage(uint8* buffer, int32 dataSize, OUT int32& sizeOfMessage) const;
 	void PutMessage(uint8* buffer, int32 sizeOfMessage);
 	void PrintErrorMessage(int error);
+
 private:
 	TCPClient Client;
 	UTCPSessionBase* Session{ nullptr };

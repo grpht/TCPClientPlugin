@@ -239,4 +239,3 @@ int32 TCPClient::SetSendBufferSize(int32 size)
     Socket->SetSendBufferSize(size, OUT SendBufferSize);
     return SendBufferSize;
 }
-

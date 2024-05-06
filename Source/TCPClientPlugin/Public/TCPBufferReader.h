@@ -30,17 +30,37 @@ public:
 	bool			Read(T* dest) { return Read(dest, sizeof(T)); }
 	bool			Read(void* dest, uint32 len);
 
-	int64			ReadInt64();
-	int32			ReadInt32();
-	int16			ReadInt16();
-	int8			ReadInt8();
+	uint8           ReadByte();
+	TArray<uint8>   ReadBytes(size_t length);
+
 	bool			ReadBoolean();
+	int8			ReadInt8();
+	int16			ReadInt16();
+	int32			ReadInt32();
+	int64			ReadInt64();
+	uint8           ReadUInt8();
+	uint16			ReadUint16();
+	uint32			ReadUint32();
+	uint64			ReadUint64();
+	
 	float			ReadHalf();
 	float			ReadSingle();
 	double			ReadDouble();
-	TArray<uint8>   ReadBytes(uint32 length);
-
+	
+	/**
+	* @brief It uses the Length-Prefixed method for reading strings.
+	* It first reads a 2-byte number, and then reads a string of that length.
+	*/
 	FString			ReadStringUTF8();
+	/**
+	* @brief It uses the Length-Prefixed method that specifies the length for reading strings.
+	*/
+	FString			ReadStringUTF8(int32 length);
+	/**
+	* @brief It uses the Null-Terminate method for reading strings.
+	* Reads a string with a null character at the end.
+	*/
+	FString			ReadStringUTF8NT();
 
 	template<typename T>
 	TCPBufferReader& operator>>(OUT T& dest);

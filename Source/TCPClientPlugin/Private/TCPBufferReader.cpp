@@ -51,23 +51,24 @@ bool TCPBufferReader::Read(void* dest, uint32 len)
     return true;
 }
 
-int64 TCPBufferReader::ReadInt64()
+uint8 TCPBufferReader::ReadByte()
 {
-    int64 ret;
+    uint8 ret;
     Read(&ret, sizeof(ret));
     return ret;
 }
 
-int32 TCPBufferReader::ReadInt32()
+TArray<uint8> TCPBufferReader::ReadBytes(size_t length)
 {
-    int32 ret;
-    Read(&ret, sizeof(ret));
-    return ret;
+    TArray<uint8> dest;
+    dest.AddUninitialized(length);
+    Read(dest.GetData(), length);
+    return dest;
 }
 
-int16 TCPBufferReader::ReadInt16()
+bool TCPBufferReader::ReadBoolean()
 {
-    int16 ret;
+    bool ret;
     Read(&ret, sizeof(ret));
     return ret;
 }
@@ -79,9 +80,51 @@ int8 TCPBufferReader::ReadInt8()
     return ret;
 }
 
-bool TCPBufferReader::ReadBoolean()
+int16 TCPBufferReader::ReadInt16()
 {
-    bool ret;
+    int16 ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+int32 TCPBufferReader::ReadInt32()
+{
+    int32 ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+int64 TCPBufferReader::ReadInt64()
+{
+    int64 ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+uint8 TCPBufferReader::ReadUInt8()
+{
+    uint8 ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+uint16 TCPBufferReader::ReadUint16()
+{
+    uint16 ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+uint32 TCPBufferReader::ReadUint32()
+{
+    uint32 ret;
+    Read(&ret, sizeof(ret));
+    return ret;
+}
+
+uint64 TCPBufferReader::ReadUint64()
+{
+    uint64 ret;
     Read(&ret, sizeof(ret));
     return ret;
 }
@@ -107,20 +150,30 @@ double TCPBufferReader::ReadDouble()
     return ret;
 }
 
-TArray<uint8> TCPBufferReader::ReadBytes(uint32 length)
-{
-    TArray<uint8> dest;
-    dest.AddUninitialized(length);
-    Read(dest.GetData(), length);
-    return dest;
-}
-
 FString TCPBufferReader::ReadStringUTF8()
 {
     int16 length = ReadInt16();
+    return ReadStringUTF8(length);
+}
+
+FString TCPBufferReader::ReadStringUTF8(int32 length)
+{
     TArray<uint8> dest;
     dest.AddUninitialized(length);
     Read(dest.GetData(), length);
     dest.Add(0);
+    return UTF8_TO_TCHAR(dest.GetData());
+}
+
+FString TCPBufferReader::ReadStringUTF8NT()
+{
+    TArray<uint8> dest;
+    uint8 c;
+    while (Read(&c, sizeof(uint8)))
+    {
+        dest.Add(c);
+        if (c == '\0')
+            break;
+    }
     return UTF8_TO_TCHAR(dest.GetData());
 }

@@ -19,7 +19,7 @@ class TCPClient
 public:
     TCPClient();
     ~TCPClient();
-
+    
     int32 BeginConnect(const FString host, int32 port, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state);
     int32 BeginConnect(const FIPv4Endpoint endpoint, std::function<void(FAsyncResultRef)> connectCallback, std::function<void(FAsyncResultRef)> disconnectCallback, std::any state);
     int32 BeginSend(FByteArrayRef& sendBuffPtr, std::function<void(FAsyncResultRef)> callback, std::any state);
@@ -30,6 +30,7 @@ public:
     int32 SetReceiveBufferSize(int32 size);
     int32 SetSendBufferSize(int32 size);
 
+    FString GetDomainIpAddress(const FString& URL);
 private:
     class FSocket* Socket;
     class ISocketSubsystem* SocketSubsystem;

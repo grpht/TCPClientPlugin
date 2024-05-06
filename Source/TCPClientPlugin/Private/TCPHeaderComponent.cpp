@@ -31,3 +31,8 @@ void UTCPHeaderComponent::WriteHeader(TCPBufferWriter& writer, int32 protocolId)
 	FMemory::Memcpy(&writer.GetData()[skipByte], &protocolId, sizeof(TCPPacketHeader::Id));
 }
 
+bool UTCPHeaderComponent::CheckIntegrity(uint8* buffer) const
+{
+	return true;
+}
+
